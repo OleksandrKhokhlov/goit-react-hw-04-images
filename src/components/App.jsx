@@ -1,74 +1,62 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { Searchbar } from './Searchbar/Searchbar';
 import { pixabayAPI } from './Services/API';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { LoadMoreBtn } from './Button/Button';
-import { MagnifyingGlass } from 'react-loader-spinner';
+import { Loader } from './Loader/Loader';
 
-export class App extends Component {
-  state = {
-    query: '',
-    items: [],
-    page: 1,
-    perPage: 12,
-    totalHits: 0,
-    isLoading: false,
-  };
+export const App = () => {
+  const [query, setQuery] = useState('');
+  const [items, setItems] = useState([]);
+  const [page, setPage] = useState(1);
+  const [perPage] = useState(12);
+  const [totalHits, setTotalHits] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
-  async componentDidUpdate(prevProps, prevState) {
-    const { query, page, perPage } = this.state;
-    try {
-      if (prevState.query !== query || prevState.page !== page) {
-        this.setState({ isLoading: true });
+  useEffect(() => {
+    async function getImages() {
+      try {
+        setIsLoading(true);
         const resp = await pixabayAPI(query, page, perPage);
         if (resp.status !== 200) {
           throw new Error();
         }
-        this.setState(prevState => ({
-          items: [...prevState.items, ...resp.data.hits],
-          totalHits: resp.data.totalHits,
-          isLoading: false,
-        }));
+        setItems(prevItems => [...prevItems, ...resp.data.hits]);
+        setTotalHits(resp.data.totalHits);
+        setIsLoading(false);
+      } catch (error) {
+        console.log(error.message);
       }
-    } catch (error) {
-      console.log(error.message);
     }
-  }
+    if (query!=='') {
+      getImages();
+    }
+  },[page, perPage, query]);
 
-  handlerSubmit = evt => {
+  const handlerSubmit = evt => {
     evt.preventDefault();
-    const query = evt.target.elements.query.value.trim();
-    this.setState({ query, items: [], page: 1 });
+
+    const queryCurrent = evt.target.elements.query.value.trim();
+
+    setQuery(queryCurrent);
+    setItems([]);
+    setPage(1);
     evt.target.reset();
   };
 
-  handleLoadMore = () => {
-    this.setState(prevState => ({ page: prevState.page + 1 }));
+  const handleLoadMore = () => {
+    setPage(prevPage => prevPage + 1);
   };
 
-  render() {
-    const { items, perPage, totalHits, page, isLoading } = this.state;
-    const totalPage = Math.round(totalHits / perPage);
-    return (
-      <>
-        <Searchbar onSubmit={this.handlerSubmit} />
-        <ImageGallery images={items} />
-        {items.length > 0 && page <= totalPage && !isLoading && (
-          <LoadMoreBtn handlerClick={this.handleLoadMore}>
-            Load More
-          </LoadMoreBtn>
-        )}
-        <MagnifyingGlass
-          visible={isLoading}
-          height="80"
-          width="80"
-          ariaLabel="MagnifyingGlass-loading"
-          wrapperStyle={{ position: 'fixed', left: '50%', top: '50%' }}
-          wrapperClass="MagnifyingGlass-wrapper"
-          glassColor="#c0efff"
-          color="#3f51b5"
-        />
-      </>
-    );
-  }
-}
+  const totalPage = Math.round(totalHits / perPage);
+  return (
+    <>
+      <Searchbar onSubmit={handlerSubmit} />
+      <ImageGallery images={items} />
+      {items.length > 0 && page <= totalPage && !isLoading && (
+        <LoadMoreBtn handlerClick={handleLoadMore}>Load More</LoadMoreBtn>
+      )}
+      <Loader isLoading={isLoading} />
+    </>
+  );
+};
