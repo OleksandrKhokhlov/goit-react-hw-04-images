@@ -1,4 +1,4 @@
-import styled from "@emotion/styled";
+import styled from '@emotion/styled';
 
 export const LoadMoreBtnStyled = styled.button`
   margin: 15px auto;
@@ -21,5 +21,8 @@ export const LoadMoreBtnStyled = styled.button`
   :hover,
   :focus {
     background-color: #303f9f;
+  }
+  :disabled {
+    background-color: #9799b6;
   }
 `;

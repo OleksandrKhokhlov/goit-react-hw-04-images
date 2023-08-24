@@ -53,8 +53,10 @@ export const App = () => {
     <>
       <Searchbar onSubmit={handlerSubmit} />
       <ImageGallery images={items} />
-      {items.length > 0 && page <= totalPage && !isLoading && (
-        <LoadMoreBtn handlerClick={handleLoadMore}>Load More</LoadMoreBtn>
+      {items.length > 0 && page <= totalPage && (
+        <LoadMoreBtn handlerClick={handleLoadMore} isLoading={isLoading}>
+          Load More
+        </LoadMoreBtn>
       )}
       <Loader isLoading={isLoading} />
     </>
